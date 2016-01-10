@@ -1,0 +1,46 @@
+// 動作テストスクリプト
+// テスト画像をlanczos2, lanczos3で拡縮して倍率ごとにファイルに保存する
+
+// プラグインの読み込み
+if (System.getArgument("-debug") == "yes") {
+    Plugins.link("krLanczosGPU_d.dll");
+} else {
+    Plugins.link("krLanczosGPU.dll");
+}
+
+var FILE = "sample"; // 変換するファイル名
+
+var win = new Window();
+var primaryLayer = new Layer(win, null); // プライマリレイヤ(未使用)
+var srcLayer = new Layer(win, win.primaryLayer); // 元画像を読み込むレイヤ
+var destLayer = new Layer(win, win.primaryLayer); // 拡縮コピー先の例や
+
+// 画像を読み込む
+with (srcLayer) {
+    .loadImages(FILE);
+    .setSizeToImageSize();
+}
+
+// 拡縮して画像を出力
+for (var ratio = 10; ratio < 160; ratio += 10) with (destLayer) {
+    if (ratio == 100) continue; // 同じサイズへのコピーは未対応
+
+    // 変換後のサイズに設定
+    .setSize(srcLayer.width * ratio / 100, srcLayer.height * ratio / 100);
+    .setImageSize(.width, .height);
+
+    // 拡縮コピー(lanczos2)を実行してファイルに保存
+    .stretchCopyByLanczos2(
+        0, 0, .width, .height,
+        srcLayer, 0, 0, srcLayer.width, srcLayer.height);
+    .saveLayerImage("lanczos2_" + ratio + ".png", "png");
+
+    // 拡縮コピー(lanczos3)を実行してファイルに保存
+    .stretchCopyByLanczos3(
+        0, 0, .width, .height,
+        srcLayer, 0, 0, srcLayer.width, srcLayer.height);
+    .saveLayerImage("lanczos3_" + ratio + ".png", "png");
+}
+
+// 終了
+System.terminate();

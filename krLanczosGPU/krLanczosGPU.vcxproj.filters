@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ncbind.cpp">
+      <Filter>ncbind</Filter>
+    </ClCompile>
+    <ClCompile Include="tp_stub.cpp">
+      <Filter>ncbind</Filter>
+    </ClCompile>
+    <ClCompile Include="lanczosCPU.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ncb_foreach.h">
+      <Filter>ncbind</Filter>
+    </ClInclude>
+    <ClInclude Include="ncb_invoke.hpp">
+      <Filter>ncbind</Filter>
+    </ClInclude>
+    <ClInclude Include="ncbind.hpp">
+      <Filter>ncbind</Filter>
+    </ClInclude>
+    <ClInclude Include="tp_stub.h">
+      <Filter>ncbind</Filter>
+    </ClInclude>
+    <ClInclude Include="lanczosCPU.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ncbind">
+      <UniqueIdentifier>{375d6357-fcc4-4861-b552-82630d275eb9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

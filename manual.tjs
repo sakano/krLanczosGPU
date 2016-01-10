@@ -1,0 +1,29 @@
+/**
+ * 擬似コードによるマニュアル
+ */
+
+class Layer
+{
+    /**
+     * 指定されたレイヤ(src)の指定位置(dleft, dtop, dwidth, dheight)から
+     * 呼び出し元レイヤの指定位置(sleft, stop, swidth, sheight)へ
+     * Lanczos2フィルタによる拡縮コピーを実行します。
+     *
+     * @param dleft コピー先矩形の左端座標
+     * @param dtop コピー先矩形の上端座標
+     * @param dwidth コピー先矩形の幅
+     * @param dheight コピー先矩形の高さ
+     * @param src コピー元レイヤオブジェクト
+     * @param dleft コピー元矩形の左端座標
+     * @param dtop コピー元矩形の上端座標
+     * @param dwidth コピー元矩形の幅
+     * @param dheight コピー元矩形の高さ
+     */
+    function stretchCopyByLanczos2(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight);
+
+    /**
+     * Lanczos3による拡縮コピーを実行します。
+     * 詳細は stretchCopyByLanczos2 を参照してください。
+     */
+    function stretchCopyByLanczos3(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight);
+}
