@@ -24,10 +24,17 @@
       <Filter>ncbind</Filter>
     </ClInclude>
     <ClInclude Include="lanczosCPU.hpp" />
+    <ClInclude Include="lanczosGPU.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ncbind">
       <UniqueIdentifier>{375d6357-fcc4-4861-b552-82630d275eb9}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\output\test.tjs" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="lanczosGPU.cu" />
   </ItemGroup>
 </Project>

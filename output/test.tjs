@@ -21,8 +21,10 @@ with (srcLayer) {
     .setSizeToImageSize();
 }
 
+var tick = []; // 処理時間計測用
+
 // 拡縮して画像を出力
-for (var ratio = 10; ratio < 160; ratio += 10) with (destLayer) {
+for (var ratio = 10; ratio < 150; ratio += 10) with (destLayer) {
     if (ratio == 100) continue; // 同じサイズへのコピーは未対応
 
     // 変換後のサイズに設定
@@ -30,17 +32,31 @@ for (var ratio = 10; ratio < 160; ratio += 10) with (destLayer) {
     .setImageSize(.width, .height);
 
     // 拡縮コピー(lanczos2)を実行してファイルに保存
-    .stretchCopyByLanczos2(
-        0, 0, .width, .height,
-        srcLayer, 0, 0, srcLayer.width, srcLayer.height);
-    .saveLayerImage("lanczos2_" + ratio + ".png", "png");
+    var start = System.getTickCount();
+    .stretchCopyByLanczos2(0, 0, .width, .height, srcLayer, 0, 0, srcLayer.width, srcLayer.height);
+    tick.add("Lanczos2(%d%%) : %d ms".sprintf(ratio, System.getTickCount() - start));
+    .saveLayerImage("cpu_lanczos2_" + ratio + ".png", "png");
 
     // 拡縮コピー(lanczos3)を実行してファイルに保存
-    .stretchCopyByLanczos3(
-        0, 0, .width, .height,
-        srcLayer, 0, 0, srcLayer.width, srcLayer.height);
-    .saveLayerImage("lanczos3_" + ratio + ".png", "png");
+    var start = System.getTickCount();
+    .stretchCopyByLanczos3(0, 0, .width, .height, srcLayer, 0, 0, srcLayer.width, srcLayer.height);
+    tick.add("Lanczos3(%d%%) : %d ms".sprintf(ratio, System.getTickCount() - start));
+    .saveLayerImage("cpu_lanczos3_" + ratio + ".png", "png");
+    
+    // 拡縮コピー(lanczos2GPU)を実行してファイルに保存
+    var start = System.getTickCount();
+    .stretchCopyByLanczos2(0, 0, .width, .height, srcLayer, 0, 0, srcLayer.width, srcLayer.height, true);
+    tick.add("Lanczos2GPU(%d%%) : %d ms".sprintf(ratio, System.getTickCount() - start));
+    .saveLayerImage("gpu_lanczos2_" + ratio + ".png", "png");
+
+    // 拡縮コピー(lanczos3GPU)を実行してファイルに保存
+    var start = System.getTickCount();
+    .stretchCopyByLanczos3(0, 0, .width, .height, srcLayer, 0, 0, srcLayer.width, srcLayer.height, true);
+    tick.add("Lanczos3GPU(%d%%) : %d ms".sprintf(ratio, System.getTickCount() - start));
+    .saveLayerImage("gpu_lanczos3_" + ratio + ".png", "png");
 }
+
+tick.save("tick.txt");
 
 // 終了
 System.terminate();

@@ -1,5 +1,6 @@
 ﻿#include "ncbind.hpp"
 #include "lanczosCPU.hpp"
+#include "lanczosGPU.hpp"
 
 #define RETURN_IF_FAILED(STATEMENT) \
         { \
@@ -70,15 +71,16 @@ namespace
 
         RETURN_IF_FAILED(checkDestCondition(dest));
 
-        unsigned int dleft = static_cast<unsigned int>(param[0]->AsInteger());
-        unsigned int dtop = static_cast<unsigned int>(param[1]->AsInteger());
-        unsigned int dwidth = static_cast<unsigned int>(param[2]->AsInteger());
-        unsigned int dheight = static_cast<unsigned int>(param[3]->AsInteger());
+        const unsigned int dleft = static_cast<unsigned int>(param[0]->AsInteger());
+        const unsigned int dtop = static_cast<unsigned int>(param[1]->AsInteger());
+        const unsigned int dwidth = static_cast<unsigned int>(param[2]->AsInteger());
+        const unsigned int dheight = static_cast<unsigned int>(param[3]->AsInteger());
         iTJSDispatch2 *src = param[4]->AsObjectNoAddRef();
-        unsigned int sleft = static_cast<unsigned int>(param[5]->AsInteger());
-        unsigned int stop = static_cast<unsigned int>(param[6]->AsInteger());
-        unsigned int swidth = static_cast<unsigned int>(param[7]->AsInteger());
-        unsigned int sheight = static_cast<unsigned int>(param[8]->AsInteger());
+        const unsigned int sleft = static_cast<unsigned int>(param[5]->AsInteger());
+        const unsigned int stop = static_cast<unsigned int>(param[6]->AsInteger());
+        const unsigned int swidth = static_cast<unsigned int>(param[7]->AsInteger());
+        const unsigned int sheight = static_cast<unsigned int>(param[8]->AsInteger());
+        const bool useGPU = (numparams > 9 && param[9]->AsInteger() != 0);
 
         RETURN_IF_FAILED(checkSrcCondition(src));
         RETURN_IF_FAILED(checkAreaCondition(dleft, dtop, dwidth, dheight, sleft, stop, swidth, sheight));
@@ -88,12 +90,19 @@ namespace
         TryGetProperty(src, srcbuffer, "mainImageBufferForWrite");
         TryGetProperty(src, srcpitch, "mainImageBufferPitch");
 
-        CPU::TVPLanczos<W>(
-            static_cast<int>(destpitch.AsInteger()), reinterpret_cast<tjs_uint8*>(destbuffer.AsInteger()), tTVPRect(dleft, dtop, dleft + dwidth, dtop + dheight),
-            static_cast<int>(srcpitch.AsInteger()), reinterpret_cast<tjs_uint8*>(srcbuffer.AsInteger()), tTVPRect(sleft, stop, sleft + swidth, stop + sheight));
-
+        if (useGPU) {
+            GPU::TVPLanczos<W>(
+                static_cast<int>(destpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(destbuffer.AsInteger()),
+                dleft, dtop, dwidth, dheight,
+                static_cast<int>(srcpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(srcbuffer.AsInteger()),
+                sleft, stop, swidth, sheight);
+        }
+        else {
+            CPU::TVPLanczos<W>(
+                static_cast<int>(destpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(destbuffer.AsInteger()), tTVPRect(dleft, dtop, dleft + dwidth, dtop + dheight),
+                static_cast<int>(srcpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(srcbuffer.AsInteger()), tTVPRect(sleft, stop, sleft + swidth, stop + sheight));
+        }
         return TJS_S_OK;
-
     }
 }
 

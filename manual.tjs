@@ -18,12 +18,13 @@ class Layer
      * @param dtop コピー元矩形の上端座標
      * @param dwidth コピー元矩形の幅
      * @param dheight コピー元矩形の高さ
+     * @param useGPU GPUを使うか
      */
-    function stretchCopyByLanczos2(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight);
+    function stretchCopyByLanczos2(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight, useGPU = false);
 
     /**
      * Lanczos3による拡縮コピーを実行します。
      * 詳細は stretchCopyByLanczos2 を参照してください。
      */
-    function stretchCopyByLanczos3(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight);
+    function stretchCopyByLanczos3(dleft, dtop, dwidth, dheight, src, sleft, stop, swidth, sheight, useGPU = false);
 }
