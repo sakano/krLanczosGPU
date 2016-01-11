@@ -156,6 +156,20 @@ namespace
 
         d_destbuf[y * destwidth + x] = color;
     }
+
+    template<class T>
+    struct DeviceBuffer
+    {
+        T *ptr;
+
+        explicit DeviceBuffer(const unsigned int size) {
+            checkCudaError(cudaMalloc(&ptr, sizeof(T) * size));
+        }
+
+        ~DeviceBuffer() {
+            checkCudaError(cudaFree(ptr));
+        }
+    };
         
     struct DeviceAxisParam
     {
@@ -164,7 +178,7 @@ namespace
         double *weight;
         int *index;
 
-        DeviceAxisParam(const AxisParam&& param) {
+        explicit DeviceAxisParam(const AxisParam&& param) {
             checkCudaError(cudaMalloc(&start, sizeof(int) * param.start_.size()));
             checkCudaError(cudaMalloc(&length, sizeof(int) * param.length_.size()));
             checkCudaError(cudaMalloc(&weight, sizeof(double) * param.weight_.size()));
@@ -183,23 +197,8 @@ namespace
             checkCudaError(cudaFree(index));
         }
     };
-
-    struct DeviceBuffer
-    {
-        tjs_uint32 *buffer;
-
-        DeviceBuffer(const unsigned int width, const unsigned int height) {
-            checkCudaError(cudaMalloc(&buffer, sizeof(tjs_uint32) * width * height));
-        }
-
-        ~DeviceBuffer() {
-            checkCudaError(cudaFree(buffer));
-        }
-    };
 }
 
-#include <memory>
-#include <functional>
 template<int W>
 void GPU::TVPLanczos(
     const int destpitch, tjs_uint32 * const destbuf,
@@ -217,22 +216,25 @@ void GPU::TVPLanczos(
     DeviceAxisParam deviceParamX(std::move(paramx));
     DeviceAxisParam deviceParamY(std::move(paramy));
 
-    DeviceBuffer deviceDestBuf(destwidth, destheight);
-    DeviceBuffer deviceSrcBuf(srcwidth, srcheight);
+    DeviceBuffer<tjs_uint32> deviceDestBuf(destwidth * destheight);
+    DeviceBuffer<tjs_uint32> deviceSrcBuf(srcwidth * srcheight);
     for (unsigned int y = srctop; y < srcheight; ++y) {
-        checkCudaError(cudaMemcpy(deviceSrcBuf.buffer + (y - srctop) * srcwidth, srcbuf + srcleft + y * srcpitch / 4, sizeof(tjs_uint32) * srcwidth, cudaMemcpyHostToDevice));
+        checkCudaError(cudaMemcpy(deviceSrcBuf.ptr + (y - srctop) * srcwidth, srcbuf + srcleft + y * srcpitch / 4, sizeof(tjs_uint32) * srcwidth, cudaMemcpyHostToDevice));
     }
 
+    // GPU設定検出
     int max_threads;
-    cuDeviceGetAttribute(&max_threads, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, 0);
+    if (cuDeviceGetAttribute(&max_threads, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, 0) != CUDA_SUCCESS) {
+        throw std::runtime_error("cuDeviceGetAttribute failed.");
+    }
     
     // フィルタ処理実行
     const int threadNum = max_threads;
     const int blockNum = (destwidth * destheight + threadNum - 1) / threadNum;
     kernel_weightCopy<<<blockNum, threadNum>>>(
-        deviceDestBuf.buffer,
+        deviceDestBuf.ptr,
         destleft, desttop, destwidth, destheight,
-        srcwidth, deviceSrcBuf.buffer,
+        srcwidth, deviceSrcBuf.ptr,
         deviceParamX.start, deviceParamX.length, deviceParamX.weight, deviceParamX.index,
         deviceParamY.start, deviceParamY.length, deviceParamY.weight, deviceParamY.index);
     checkCudaError(cudaGetLastError());
@@ -240,7 +242,7 @@ void GPU::TVPLanczos(
 
     // GPUからCPUへ結果を転送
     for (unsigned int y = desttop; y < destheight; ++y) {
-        checkCudaError(cudaMemcpy(destbuf + destleft + y * destpitch / 4, deviceDestBuf.buffer + (y - desttop) * destwidth, sizeof(tjs_uint32) * destwidth, cudaMemcpyDeviceToHost));
+        checkCudaError(cudaMemcpy(destbuf + destleft + y * destpitch / 4, deviceDestBuf.ptr + (y - desttop) * destwidth, sizeof(tjs_uint32) * destwidth, cudaMemcpyDeviceToHost));
     }
 }
 
