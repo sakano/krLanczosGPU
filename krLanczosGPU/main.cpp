@@ -99,8 +99,8 @@ namespace
         }
         else {
             CPU::TVPLanczos<W>(
-                static_cast<int>(destpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(destbuffer.AsInteger()), tTVPRect(dleft, dtop, dleft + dwidth, dtop + dheight),
-                static_cast<int>(srcpitch.AsInteger()), reinterpret_cast<tjs_uint32*>(srcbuffer.AsInteger()), tTVPRect(sleft, stop, sleft + swidth, stop + sheight));
+                static_cast<int>(destpitch.AsInteger()), reinterpret_cast<tjs_uint8*>(destbuffer.AsInteger()), tTVPRect(dleft, dtop, dleft + dwidth, dtop + dheight),
+                static_cast<int>(srcpitch.AsInteger()), reinterpret_cast<tjs_uint8*>(srcbuffer.AsInteger()), tTVPRect(sleft, stop, sleft + swidth, stop + sheight));
         }
         return TJS_S_OK;
     }
